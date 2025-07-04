@@ -1,0 +1,18 @@
+{
+  "name": "luxe-nails-api",
+  "version": "1.0.0",
+  "description": "Luxe Nails Studio API Backend",
+  "scripts": {
+    "dev": "php artisan serve",
+    "setup": "bash setup.sh",
+    "migrate": "php artisan migrate",
+    "seed": "php artisan db:seed",
+    "fresh": "php artisan migrate:fresh --seed",
+    "test": "php artisan test",
+    "cache-clear": "php artisan config:clear && php artisan cache:clear && php artisan route:clear",
+    "production-setup": "composer install --optimize-autoloader --no-dev && php artisan config:cache && php artisan route:cache && php artisan view:cache"
+  },
+  "keywords": ["laravel", "api", "nail-salon", "appointment-booking"],
+  "author": "Luxe Nails Studio",
+  "license": "MIT"
+}
