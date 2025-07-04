@@ -53,21 +53,30 @@ export default function BookingForm({
   onSubmit,
 }: BookingFormProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Clock className="w-5 h-5" />
-          <span>Appointment Details</span>
+    <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+      <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-t-lg border-b">
+        <CardTitle className="flex items-center space-x-3 text-xl">
+          <div className="p-2 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg">
+            <Clock className="w-5 h-5 text-white" />
+          </div>
+          <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            Appointment Details
+          </span>
         </CardTitle>
-        <CardDescription>
-          Fill in your information and select your preferred time
+        <CardDescription className="text-gray-600 text-base">
+          Complete your booking with personal details and time selection
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
+      <CardContent className="p-6">
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label
+                htmlFor="name"
+                className="text-sm font-medium text-gray-700"
+              >
+                Full Name *
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -75,10 +84,17 @@ export default function BookingForm({
                   setFormData({ ...formData, name: e.target.value })
                 }
                 required
+                placeholder="Enter your full name"
+                className="h-12 border-2 border-gray-200 focus:border-pink-400 focus:ring-pink-400 rounded-lg text-base"
               />
             </div>
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
+            <div className="space-y-2">
+              <Label
+                htmlFor="phone"
+                className="text-sm font-medium text-gray-700"
+              >
+                Phone Number *
+              </Label>
               <Input
                 id="phone"
                 type="tel"
@@ -87,12 +103,19 @@ export default function BookingForm({
                   setFormData({ ...formData, phone: e.target.value })
                 }
                 required
+                placeholder="+63 912 345 6789"
+                className="h-12 border-2 border-gray-200 focus:border-pink-400 focus:ring-pink-400 rounded-lg text-base"
               />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="email">Email Address</Label>
+          <div className="space-y-2">
+            <Label
+              htmlFor="email"
+              className="text-sm font-medium text-gray-700"
+            >
+              Email Address *
+            </Label>
             <Input
               id="email"
               type="email"
@@ -101,14 +124,33 @@ export default function BookingForm({
                 setFormData({ ...formData, email: e.target.value })
               }
               required
+              placeholder="your.email@example.com"
+              className="h-12 border-2 border-gray-200 focus:border-pink-400 focus:ring-pink-400 rounded-lg text-base"
             />
           </div>
 
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <Label className="text-sm font-medium text-blue-900">
-              Selected Date
-            </Label>
-            <p className="text-blue-800 mt-1">
+          <div className="bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 rounded-xl p-5 border-2 border-pink-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <Label className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Selected Date
+              </Label>
+            </div>
+            <p className="text-gray-800 font-medium text-lg">
               {selectedDate
                 ? new Date(selectedDate).toLocaleDateString("en-US", {
                     weekday: "long",
@@ -120,19 +162,41 @@ export default function BookingForm({
             </p>
           </div>
 
-          <div>
-            <Label htmlFor="time">Preferred Time</Label>
+          <div className="space-y-2">
+            <Label
+              htmlFor="time"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Preferred Time *
+            </Label>
             <Select
               value={selectedTime}
               onValueChange={setSelectedTime}
               required
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a time slot" />
+              <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-pink-400 focus:ring-pink-400 rounded-lg text-base">
+                <SelectValue placeholder="Choose your preferred time slot" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-2 border-gray-200 rounded-lg">
                 {timeSlots.map((slot) => (
-                  <SelectItem key={slot} value={slot}>
+                  <SelectItem
+                    key={slot}
+                    value={slot}
+                    className="hover:bg-pink-50 focus:bg-pink-50 py-3 text-base"
+                  >
                     {slot}
                   </SelectItem>
                 ))}
@@ -140,24 +204,57 @@ export default function BookingForm({
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="notes">Additional Notes (Optional)</Label>
+          <div className="space-y-2">
+            <Label
+              htmlFor="notes"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                />
+              </svg>
+              Additional Notes (Optional)
+            </Label>
             <Textarea
               id="notes"
-              placeholder="Any special requests or allergies..."
+              placeholder="Any special requests, allergies, or preferences we should know about..."
               value={formData.notes}
               onChange={(e) =>
                 setFormData({ ...formData, notes: e.target.value })
               }
+              className="min-h-[120px] border-2 border-gray-200 focus:border-pink-400 focus:ring-pink-400 rounded-lg text-base resize-none"
             />
           </div>
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+            size="lg"
+            className="w-full h-14 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!selectedService || !selectedTime}
           >
-            Book Appointment
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Confirm Your Appointment
           </Button>
         </form>
       </CardContent>
