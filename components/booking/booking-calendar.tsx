@@ -123,18 +123,23 @@ export default function BookingCalendar({
     const today = new Date();
     const availableDates: Date[] = [];
     const fullDates: Date[] = [];
+    const sundayDates: Date[] = [];
 
     // Check next 90 days for availability
     for (let i = 0; i < 90; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
-      if (!isPastDate(date) && !isTooFarInFuture(date) && !isSunday(date)) {
-        const available = getAvailableSlots(date);
-        if (available > 0) {
-          availableDates.push(new Date(date));
+      if (!isPastDate(date) && !isTooFarInFuture(date)) {
+        if (isSunday(date)) {
+          sundayDates.push(new Date(date));
         } else {
-          fullDates.push(new Date(date));
+          const available = getAvailableSlots(date);
+          if (available > 0) {
+            availableDates.push(new Date(date));
+          } else {
+            fullDates.push(new Date(date));
+          }
         }
       }
     }
@@ -142,6 +147,7 @@ export default function BookingCalendar({
     return {
       available: availableDates,
       full: fullDates,
+      sunday: sundayDates,
     };
   }, []);
 
@@ -204,9 +210,9 @@ export default function BookingCalendar({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-gray-300 shadow-sm" />
+            <div className="w-4 h-4 rounded-full bg-gray-400 shadow-sm" />
             <span className="text-sm font-medium text-gray-600">
-              Sundays Closed
+              Sunday (Closed)
             </span>
           </div>
         </div>
@@ -225,6 +231,7 @@ export default function BookingCalendar({
             modifiersClassNames={{
               available: "calendar-available",
               full: "calendar-full",
+              sunday: "calendar-sunday",
             }}
             className="mx-auto border-0 bg-white"
           />

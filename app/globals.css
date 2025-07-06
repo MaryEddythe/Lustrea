@@ -184,10 +184,6 @@ textarea:focus {
 }
 
 .calendar-container .rdp-head_row {
-  @apply border-b border-gray-200 bg-gray-50 flex w-full;
-}
-
-.calendar-container .rdp-head_row {
   @apply border-b-2 border-gray-300 bg-gray-100 flex w-full;
   display: flex !important;
 }
@@ -200,6 +196,7 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 3rem;
 }
 
 .calendar-container .rdp-row {
@@ -278,7 +275,23 @@ textarea:focus {
   box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5) !important;
 }
 
-/* Past/disabled/unavailable days (including Sundays) */
+/* Sunday dates - Gray (closed) */
+.calendar-container .rdp-day.calendar-sunday {
+  @apply text-gray-500 font-medium cursor-not-allowed;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  border: 2px solid #d1d5db !important;
+  color: #6b7280 !important;
+  opacity: 0.8;
+}
+
+.calendar-container .rdp-day.calendar-sunday:hover {
+  @apply scale-100 shadow-none cursor-not-allowed;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  color: #6b7280 !important;
+  opacity: 0.8;
+}
+
+/* Past/disabled/unavailable days */
 .calendar-container .rdp-day_disabled {
   @apply text-gray-400 font-medium cursor-not-allowed;
   background: linear-gradient(135deg, #f9fafb, #f3f4f6) !important;
