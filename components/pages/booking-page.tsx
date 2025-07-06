@@ -27,13 +27,11 @@ export default function BookingPage() {
     notes: "",
   });
 
-  // Mock booked slots data - in real app this would come from API
-  const [bookedSlots] = useState<Record<string, number>>({
-    // Example: some dates with booked slots
-    [new Date(Date.now() + 86400000).toISOString().split("T")[0]]: 2, // Tomorrow: 2 slots booked
-    [new Date(Date.now() + 2 * 86400000).toISOString().split("T")[0]]: 4, // Day after: 4 slots booked (full weekday)
-    [new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]]: 3, // Next week: 3 slots booked (full weekend)
-  });
+  // Handle slot selection from calendar
+  const handleSlotSelect = (date: Date, time: string) => {
+    setSelectedTime(time);
+    setCurrentStep("service");
+  };
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +50,7 @@ export default function BookingPage() {
     setCurrentStep("calendar");
   };
 
-  const canProceedToService = selectedDate !== undefined;
+  const canProceedToService = selectedDate !== undefined && selectedTime !== "";
   const canProceedToDetails = selectedService !== "";
 
   if (bookingSuccess) {
@@ -213,7 +211,7 @@ export default function BookingPage() {
                 <BookingCalendar
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
-                  bookedSlots={bookedSlots}
+                  onSlotSelect={handleSlotSelect}
                 />
                 <div className="flex justify-center lg:justify-end">
                   <Button
@@ -222,7 +220,9 @@ export default function BookingPage() {
                     size="lg"
                     className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-base font-medium"
                   >
-                    Continue to Service Selection
+                    {selectedTime
+                      ? `Continue with ${selectedTime} slot`
+                      : "Select a time slot"}
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </div>

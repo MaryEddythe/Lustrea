@@ -18,31 +18,47 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CalendarDays, Info } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { CalendarDays, Info, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { timeSlots } from "@/lib/data/time-slots";
+import { appointmentsData } from "@/lib/data/appointments-data";
 
 interface BookingCalendarProps {
   selectedDate: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
-  bookedSlots?: Record<string, number>; // Date string -> number of booked slots
+  onSlotSelect?: (date: Date, time: string) => void;
+  bookedSlots?: Record<string, string[]>; // Date string -> array of booked time slots
 }
 
-// Get number of available slots based on day of week
-const getMaxSlotsForDay = (date: Date): number => {
-  const dayOfWeek = date.getDay();
-  // Sunday = 0, Saturday = 6
-  return dayOfWeek === 0 || dayOfWeek === 6 ? 3 : 4;
+// Get booked time slots for a specific date from appointment data
+const getBookedSlotsForDate = (date: Date): string[] => {
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    return [];
+  }
+  const dateString = date.toISOString().split("T")[0];
+  return appointmentsData
+    .filter((appointment) => appointment.date === dateString)
+    .map((appointment) => appointment.time);
 };
 
-// Get available slots for a specific date
-const getAvailableSlots = (
-  date: Date,
-  bookedSlots: Record<string, number> = {},
-): number => {
-  const dateString = date.toISOString().split("T")[0];
-  const maxSlots = getMaxSlotsForDay(date);
-  const booked = bookedSlots[dateString] || 0;
-  return Math.max(0, maxSlots - booked);
+// Get available time slots for a specific date
+const getAvailableTimeSlots = (date: Date): string[] => {
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    return [];
+  }
+  const bookedSlots = getBookedSlotsForDate(date);
+  return timeSlots.filter((slot) => !bookedSlots.includes(slot));
+};
+
+// Get available slots count for a specific date
+const getAvailableSlots = (date: Date): number => {
+  return getAvailableTimeSlots(date).length;
 };
 
 // Check if date is in the past
@@ -66,10 +82,16 @@ const isTooFarInFuture = (date: Date): boolean => {
 export default function BookingCalendar({
   selectedDate,
   onDateSelect,
+  onSlotSelect,
   bookedSlots = {},
 }: BookingCalendarProps) {
-  // Get current month for display
-  const currentMonth = new Date();
+  // Use state for current month to keep stable across renders
+  const [currentMonth, setCurrentMonth] = React.useState(() => {
+    const now = new Date();
+    now.setDate(1);
+    now.setHours(0, 0, 0, 0);
+    return now;
+  });
 
   // Disable past dates and dates too far in future
   const disabledMatcher = React.useCallback((date: Date) => {
@@ -79,9 +101,6 @@ export default function BookingCalendar({
   // Custom modifiers for different slot availability states
   const modifiers = React.useMemo(() => {
     const today = new Date();
-    const threeMonthsFromNow = new Date();
-    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
-
     const availableDates: Date[] = [];
     const fullDates: Date[] = [];
 
@@ -91,7 +110,7 @@ export default function BookingCalendar({
       date.setDate(today.getDate() + i);
 
       if (!isPastDate(date) && !isTooFarInFuture(date)) {
-        const available = getAvailableSlots(date, bookedSlots);
+        const available = getAvailableSlots(date);
         if (available > 0) {
           availableDates.push(new Date(date));
         } else {
@@ -104,314 +123,140 @@ export default function BookingCalendar({
       available: availableDates,
       full: fullDates,
     };
-  }, [bookedSlots]);
+  }, []);
+
+  // State for slot selection sheet
+  const [slotSheetOpen, setSlotSheetOpen] = React.useState(false);
+  const [availableSlots, setAvailableSlots] = React.useState<string[]>([]);
+  const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
+
+  // Open sheet and set available slots when a date is selected
+  React.useEffect(() => {
+    if (
+      selectedDate &&
+      !isPastDate(selectedDate) &&
+      !isTooFarInFuture(selectedDate)
+    ) {
+      const slots = getAvailableTimeSlots(selectedDate);
+      setAvailableSlots(slots);
+      setSlotSheetOpen(true);
+    } else {
+      setSlotSheetOpen(false);
+    }
+  }, [selectedDate]);
+
+  // Handle slot selection
+  const handleSlotSelect = (slot: string) => {
+    setSelectedSlot(slot);
+    if (selectedDate && onSlotSelect) {
+      onSlotSelect(selectedDate, slot);
+    }
+    setSlotSheetOpen(false);
+  };
 
   return (
-    <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-      <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-t-lg border-b">
-        <CardTitle className="flex items-center justify-between text-xl">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg">
-              <CalendarDays className="w-5 h-5 text-white" />
-            </div>
-            <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              Select Appointment Date
-            </span>
-          </div>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Select Appointment Date</CardTitle>
           <Dialog>
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Info className="w-4 h-4" />
-                How to Read
+              <Button variant="ghost" size="icon">
+                <Info className="h-4 w-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Info className="w-5 h-5 text-blue-600" />
-                  How to Read the Calendar
-                </DialogTitle>
+                <DialogTitle>Availability Guide</DialogTitle>
               </DialogHeader>
-              <div className="space-y-5">
-                {/* Date color indicators */}
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-gray-600 mb-2">
-                    Date Colors:
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm border border-green-200">
-                      <div className="w-8 h-8 bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300 rounded-md flex items-center justify-center text-green-900 font-semibold text-xs">
-                        22
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-700">
-                          Available Dates
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Green background
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm border border-red-200">
-                      <div className="w-8 h-8 bg-gradient-to-br from-red-100 to-pink-100 border-2 border-red-200 rounded-md flex items-center justify-center text-red-700 font-semibold text-xs">
-                        15
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-700">
-                          Fully Booked
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Red background
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <span>Available slot</span>
                 </div>
-
-                {/* Dot indicators */}
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-gray-600 mb-2">
-                    Slot Indicators:
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
-                      <div className="flex space-x-0.5 bg-gray-50 rounded-full px-2 py-1">
-                        {Array.from({ length: 4 }, (_, i) => (
-                          <div
-                            key={i}
-                            className="w-2 h-2 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border border-white shadow-sm"
-                          />
-                        ))}
-                      </div>
-                      <span className="text-gray-700">4 slots available</span>
-                    </div>
-                    <div className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
-                      <div className="flex space-x-0.5 bg-gray-50 rounded-full px-2 py-1">
-                        {Array.from({ length: 4 }, (_, i) => (
-                          <div
-                            key={i}
-                            className={`w-2 h-2 rounded-full border border-white shadow-sm ${
-                              i < 2
-                                ? "bg-gradient-to-br from-green-400 to-emerald-500"
-                                : "bg-gradient-to-br from-red-300 to-pink-400"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-gray-700">2 slots available</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Schedule info */}
-                <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-4 rounded-lg border border-gray-200">
-                  <div className="text-sm font-medium text-gray-600 mb-3">
-                    Schedule Information:
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 bg-blue-400 rounded-full"></span>
-                      <span>Monday-Friday: 4 slots max</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 bg-purple-400 rounded-full"></span>
-                      <span>Saturday-Sunday: 3 slots max</span>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500 opacity-50" />
+                  <span>Booked slot</span>
                 </div>
               </div>
             </DialogContent>
           </Dialog>
-        </CardTitle>
-        <CardDescription className="text-gray-600 text-base">
-          Choose an available date for your luxury nail treatment
+        </div>
+        <CardDescription>
+          Choose a date for your appointment. Dots indicate available slots.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 p-6">
-        <div className="relative">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={onDateSelect}
-            disabled={disabledMatcher}
-            modifiers={modifiers}
-            modifiersClassNames={{
-              available:
-                "bg-gradient-to-br from-green-100 to-emerald-100 text-green-900 hover:bg-gradient-to-br hover:from-green-200 hover:to-emerald-200 border-2 border-green-300 shadow-md font-semibold",
-              full: "bg-gradient-to-br from-red-100 to-pink-100 text-red-700 opacity-70 cursor-not-allowed border-2 border-red-200",
-            }}
-            defaultMonth={currentMonth}
-            className="rounded-xl border-2 border-gray-100 shadow-sm mx-auto bg-white w-full"
-            classNames={{
-              months:
-                "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-              month: "space-y-4 w-full",
-              caption: "flex justify-center pt-1 relative items-center",
-              caption_label: "text-lg font-semibold",
-              nav: "space-x-1 flex items-center",
-              nav_button: cn(
-                buttonVariants({ variant: "outline" }),
-                "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100",
-              ),
-              nav_button_previous: "absolute left-1",
-              nav_button_next: "absolute right-1",
-              table: "w-full border-collapse space-y-1",
-              head_row: "flex w-full",
-              head_cell:
-                "text-muted-foreground rounded-md w-full font-normal text-sm text-center py-2",
-              row: "flex w-full mt-2",
-              cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 flex-1 min-h-[60px]",
-              day: cn(
-                buttonVariants({ variant: "ghost" }),
-                "h-full w-full p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground",
-              ),
-              day_selected:
-                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              day_today: "bg-accent text-accent-foreground font-semibold",
-              day_outside:
-                "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
-              day_disabled: "text-muted-foreground opacity-50",
-              day_range_middle:
-                "aria-selected:bg-accent aria-selected:text-accent-foreground",
-              day_hidden: "invisible",
-            }}
-          />
-        </div>
-
-        {/* Enhanced availability indicators overlay */}
-        <div className="relative -mt-[320px] pointer-events-none z-10">
-          <div className="px-3 py-2">
-            {/* Skip to calendar body */}
-            <div className="h-16"></div> {/* Caption space */}
-            <div className="h-8"></div> {/* Header space */}
-            {/* Calendar grid overlay */}
-            <div className="grid grid-cols-7 gap-2">
-              {Array.from({ length: 42 }, (_, i) => {
-                const startOfMonth = new Date(
-                  currentMonth.getFullYear(),
-                  currentMonth.getMonth(),
-                  1,
-                );
-                const startOfCalendar = new Date(startOfMonth);
-                startOfCalendar.setDate(
-                  startOfCalendar.getDate() - startOfMonth.getDay(),
-                );
-
-                const currentDate = new Date(startOfCalendar);
-                currentDate.setDate(currentDate.getDate() + i);
-
-                const isPast = isPastDate(currentDate);
-                const isFuture = isTooFarInFuture(currentDate);
-                const isCurrentMonth =
-                  currentDate.getMonth() === currentMonth.getMonth();
-
-                if (!isCurrentMonth || isPast || isFuture) {
-                  return <div key={i} className="min-h-[60px] p-2"></div>;
-                }
-
-                const availableSlots = getAvailableSlots(
-                  currentDate,
-                  bookedSlots,
-                );
-                const maxSlots = getMaxSlotsForDay(currentDate);
-
-                return (
-                  <div
-                    key={i}
-                    className="min-h-[60px] p-2 flex flex-col items-center justify-end"
-                  >
-                    {/* Date number */}
-                    <div className="text-sm font-medium mb-1 text-center">
-                      {currentDate.getDate()}
-                    </div>
-
-                    {/* Availability dots */}
-                    <div className="flex space-x-1 justify-center mb-1">
-                      {Array.from({ length: maxSlots }, (_, slotIndex) => (
-                        <div
-                          key={slotIndex}
-                          className={cn(
-                            "w-2 h-2 rounded-full border border-white shadow-sm transition-all duration-200",
-                            slotIndex < availableSlots
-                              ? "bg-gradient-to-br from-green-400 to-emerald-500"
-                              : "bg-gradient-to-br from-red-300 to-pink-400",
-                          )}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Availability badge */}
-                    {availableSlots === maxSlots && availableSlots > 0 && (
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                    )}
-                    {availableSlots === 0 && (
-                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
+      <CardContent>
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={(date) => {
+            onDateSelect(date);
+            setSelectedSlot(null); // reset slot selection on new date
+          }}
+          disabled={disabledMatcher}
+          modifiers={modifiers}
+          modifiersClassNames={{
+            available: "available",
+            full: "full",
+          }}
+          className="rounded-md border"
+        />
         {selectedDate && (
-          <div className="bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 rounded-xl p-5 border-2 border-pink-200 shadow-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg">
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <div className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Selected Date
-              </div>
-            </div>
-            <div className="text-gray-800 font-medium text-lg mb-2">
-              {selectedDate.toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="flex space-x-0.5 bg-gray-50 rounded-full px-2 py-1 border border-gray-200">
-                {Array.from(
-                  { length: getMaxSlotsForDay(selectedDate) },
-                  (_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2.5 h-2.5 rounded-full border border-white shadow-sm transition-all duration-200 ${
-                        i < getAvailableSlots(selectedDate, bookedSlots)
-                          ? "bg-gradient-to-br from-green-400 to-emerald-500 shadow-green-200"
-                          : "bg-gradient-to-br from-red-300 to-pink-400 shadow-red-200"
-                      }`}
-                    />
-                  ),
-                )}
-              </div>
-              <span className="text-gray-700 font-medium">
-                {getAvailableSlots(selectedDate, bookedSlots)} of{" "}
-                {getMaxSlotsForDay(selectedDate)} slots available
-              </span>
-            </div>
+          <div className="mt-4">
+            <Badge variant="outline" className="flex gap-2 items-center">
+              <CalendarDays className="h-4 w-4" />
+              Available slots: {getAvailableSlots(selectedDate)}
+            </Badge>
           </div>
         )}
       </CardContent>
+
+      {/* Time slot selection sheet */}
+      <Sheet open={slotSheetOpen} onOpenChange={setSlotSheetOpen}>
+        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Choose a Time Slot
+            </SheetTitle>
+            {selectedDate && (
+              <p className="text-sm text-muted-foreground">
+                {selectedDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            )}
+          </SheetHeader>
+          <div className="mt-6 space-y-3">
+            {availableSlots.length > 0 ? (
+              availableSlots.map((slot) => (
+                <Button
+                  key={slot}
+                  variant={selectedSlot === slot ? "default" : "outline"}
+                  className="w-full justify-start text-left"
+                  onClick={() => handleSlotSelect(slot)}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  {slot}
+                </Button>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-sm text-muted-foreground">
+                  No available time slots for this date
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Please select a different date
+                </div>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </Card>
   );
 }
