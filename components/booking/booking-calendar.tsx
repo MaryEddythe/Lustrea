@@ -24,9 +24,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { CalendarDays, Info, Clock } from "lucide-react";
+import { CalendarDays, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { timeSlots } from "@/lib/data/time-slots";
+import { weekdayTimeSlots, weekendTimeSlots } from "@/lib/data/time-slots";
 import { appointmentsData } from "@/lib/data/appointments-data";
 
 interface BookingCalendarProps {
@@ -47,13 +47,26 @@ const getBookedSlotsForDate = (date: Date): string[] => {
     .map((appointment) => appointment.time);
 };
 
+// Get time slots for a specific date based on weekday/weekend
+const getTimeSlotsForDate = (date: Date): string[] => {
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    return [];
+  }
+  const dayOfWeek = date.getDay();
+  // Sunday = 0, Saturday = 6
+  return dayOfWeek === 0 || dayOfWeek === 6
+    ? weekendTimeSlots
+    : weekdayTimeSlots;
+};
+
 // Get available time slots for a specific date
 const getAvailableTimeSlots = (date: Date): string[] => {
   if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
     return [];
   }
+  const allSlots = getTimeSlotsForDate(date);
   const bookedSlots = getBookedSlotsForDate(date);
-  return timeSlots.filter((slot) => !bookedSlots.includes(slot));
+  return allSlots.filter((slot) => !bookedSlots.includes(slot));
 };
 
 // Get available slots count for a specific date
@@ -155,102 +168,149 @@ export default function BookingCalendar({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Select Appointment Date</CardTitle>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Info className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Availability Guide</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span>Available slot</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500 opacity-50" />
-                  <span>Booked slot</span>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+    <Card className="w-full max-w-2xl mx-auto shadow-lg">
+      <CardHeader className="text-center pb-4">
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="p-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg">
+            <CalendarDays className="h-6 w-6 text-white" />
+          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            Select Your Appointment Date
+          </CardTitle>
         </div>
-        <CardDescription>
-          Choose a date for your appointment. Dots indicate available slots.
+        <CardDescription className="text-base">
+          Choose a date to see available time slots
         </CardDescription>
+
+        {/* Availability Legend */}
+        <div className="flex items-center justify-center gap-6 mt-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-green-500 shadow-sm" />
+            <span className="text-sm font-medium text-green-700">
+              Available
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-red-500 shadow-sm" />
+            <span className="text-sm font-medium text-red-700">
+              Fully Booked
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-gray-300 shadow-sm" />
+            <span className="text-sm font-medium text-gray-600">
+              Unavailable
+            </span>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={(date) => {
-            onDateSelect(date);
-            setSelectedSlot(null); // reset slot selection on new date
-          }}
-          disabled={disabledMatcher}
-          modifiers={modifiers}
-          modifiersClassNames={{
-            available: "available",
-            full: "full",
-          }}
-          className="rounded-md border"
-        />
+      <CardContent className="px-6 pb-6">
+        <div className="calendar-container">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(date) => {
+              onDateSelect(date);
+              setSelectedSlot(null); // reset slot selection on new date
+            }}
+            disabled={disabledMatcher}
+            modifiers={modifiers}
+            modifiersClassNames={{
+              available: "calendar-available",
+              full: "calendar-full",
+            }}
+            className="mx-auto border-0 bg-white"
+          />
+        </div>
         {selectedDate && (
-          <div className="mt-4">
-            <Badge variant="outline" className="flex gap-2 items-center">
-              <CalendarDays className="h-4 w-4" />
-              Available slots: {getAvailableSlots(selectedDate)}
-            </Badge>
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-900">
+                {selectedDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+              <Badge
+                variant="outline"
+                className="mt-2 flex gap-2 items-center text-sm"
+              >
+                <Clock className="h-4 w-4" />
+                {getAvailableSlots(selectedDate)} slots available
+              </Badge>
+            </div>
           </div>
         )}
       </CardContent>
 
       {/* Time slot selection sheet */}
       <Sheet open={slotSheetOpen} onOpenChange={setSlotSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Choose a Time Slot
-            </SheetTitle>
-            {selectedDate && (
-              <p className="text-sm text-muted-foreground">
-                {selectedDate.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-            )}
-          </SheetHeader>
-          <div className="mt-6 space-y-3">
-            {availableSlots.length > 0 ? (
-              availableSlots.map((slot) => (
-                <Button
-                  key={slot}
-                  variant={selectedSlot === slot ? "default" : "outline"}
-                  className="w-full justify-start text-left"
-                  onClick={() => handleSlotSelect(slot)}
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  {slot}
-                </Button>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <div className="text-sm text-muted-foreground">
-                  No available time slots for this date
+        <SheetContent
+          side="right"
+          className="w-[400px] sm:w-[540px] bg-gradient-to-br from-white to-gray-50"
+        >
+          <SheetHeader className="pb-6">
+            <div className="text-center space-y-3">
+              <div className="mx-auto w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+                <Clock className="h-6 w-6 text-white" />
+              </div>
+              <SheetTitle className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Choose Your Time Slot
+              </SheetTitle>
+              {selectedDate && (
+                <div className="p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+                  <p className="text-lg font-semibold text-gray-900">
+                    {selectedDate.toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {availableSlots.length} slots available
+                  </p>
                 </div>
-                <div className="text-xs text-muted-foreground mt-2">
-                  Please select a different date
+              )}
+            </div>
+          </SheetHeader>
+          <div className="space-y-3">
+            {availableSlots.length > 0 ? (
+              <>
+                <p className="text-sm font-medium text-gray-700 mb-4">
+                  Available times:
+                </p>
+                <div className="space-y-3">
+                  {availableSlots.map((slot) => (
+                    <Button
+                      key={slot}
+                      variant={selectedSlot === slot ? "default" : "outline"}
+                      className={cn(
+                        "w-full h-14 text-left justify-start font-medium transition-all duration-200 text-base",
+                        selectedSlot === slot
+                          ? "bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg scale-105"
+                          : "hover:border-pink-300 hover:bg-pink-50 hover:shadow-md hover:scale-105",
+                      )}
+                      onClick={() => handleSlotSelect(slot)}
+                    >
+                      <Clock className="h-5 w-5 mr-3" />
+                      {slot}
+                    </Button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <Clock className="h-8 w-8 text-red-500" />
+                </div>
+                <div className="text-lg font-semibold text-gray-900 mb-2">
+                  No Available Slots
+                </div>
+                <div className="text-sm text-gray-600">
+                  This date is fully booked. Please select a different date.
                 </div>
               </div>
             )}

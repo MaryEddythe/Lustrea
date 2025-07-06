@@ -157,40 +157,166 @@ textarea:focus {
   }
 }
 
-/* Calendar availability colors */
-.rdp-day.available {
-  background-color: rgb(220 252 231) !important; /* green-100 */
-  color: rgb(22 101 52) !important; /* green-800 */
-  border: 1px solid rgb(134 239 172) !important; /* green-300 */
+/* Enhanced Calendar Styling */
+.calendar-container {
+  @apply rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-white;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.rdp-day.available:hover {
-  background-color: rgb(187 247 208) !important; /* green-200 */
-  color: rgb(20 83 45) !important; /* green-900 */
+.calendar-container .rdp {
+  @apply w-full;
 }
 
-.rdp-day.full {
-  background-color: rgb(254 226 226) !important; /* red-100 */
-  color: rgb(153 27 27) !important; /* red-800 */
-  border: 1px solid rgb(252 165 165) !important; /* red-300 */
+.calendar-container .rdp-months {
+  @apply w-full;
 }
 
-.rdp-day.full:hover {
-  background-color: rgb(254 202 202) !important; /* red-200 */
-  color: rgb(127 29 29) !important; /* red-900 */
-  cursor: not-allowed;
+.calendar-container .rdp-month {
+  @apply w-full;
 }
 
-.dark .rdp-day.available {
-  background-color: rgb(20 83 45) !important; /* green-900 */
-  color: rgb(220 252 231) !important; /* green-100 */
-  border: 1px solid rgb(21 128 61) !important; /* green-700 */
+.calendar-container .rdp-table {
+  @apply w-full border-collapse;
 }
 
-.dark .rdp-day.full {
-  background-color: rgb(127 29 29) !important; /* red-900 */
-  color: rgb(254 226 226) !important; /* red-100 */
-  border: 1px solid rgb(185 28 28) !important; /* red-700 */
+.calendar-container .rdp-head_row {
+  @apply border-b border-gray-200 bg-gray-50;
+}
+
+.calendar-container .rdp-head_cell {
+  @apply p-3 text-center font-bold text-gray-800 text-sm uppercase tracking-wider;
+  width: 14.28%; /* Equal width for all 7 days */
+  min-width: 3rem;
+}
+
+.calendar-container .rdp-row {
+  @apply border-b border-gray-100 last:border-b-0;
+}
+
+.calendar-container .rdp-cell {
+  @apply relative text-center;
+  width: 14.28%; /* Equal width for all 7 days */
+  min-height: 4rem;
+  padding: 0.25rem;
+}
+
+.calendar-container .rdp-day {
+  @apply w-full h-14 mx-auto flex items-center justify-center text-sm font-bold rounded-lg transition-all duration-200 border-2 border-gray-200 relative bg-white;
+  cursor: pointer;
+  min-width: 3rem;
+}
+
+.calendar-container .rdp-day:hover {
+  @apply scale-105 shadow-md z-10;
+  transform: scale(1.05) translateY(-1px);
+}
+
+/* Add subtle pulsing animation for available days */
+.calendar-container .rdp-day.calendar-available {
+  animation: subtle-pulse 2s infinite;
+}
+
+@keyframes subtle-pulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
+  }
+}
+
+/* Available days - Green */
+.calendar-container .rdp-day.calendar-available {
+  @apply text-white font-black shadow-lg;
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  border: 2px solid #15803d !important;
+  color: white !important;
+}
+
+.calendar-container .rdp-day.calendar-available:hover {
+  @apply scale-110 shadow-xl;
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  transform: scale(1.1) !important;
+  color: white !important;
+}
+
+/* Fully booked days - Red */
+.calendar-container .rdp-day.calendar-full {
+  @apply text-white font-black shadow-lg cursor-not-allowed;
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border: 2px solid #b91c1c !important;
+  color: white !important;
+}
+
+.calendar-container .rdp-day.calendar-full:hover {
+  @apply scale-105 shadow-lg cursor-not-allowed;
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  color: white !important;
+}
+
+/* Past/disabled/unavailable days */
+.calendar-container .rdp-day_disabled {
+  @apply text-gray-500 font-semibold cursor-not-allowed;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  border: 2px solid #d1d5db !important;
+  color: #6b7280 !important;
+}
+
+.calendar-container .rdp-day_disabled:hover {
+  @apply scale-100 shadow-none cursor-not-allowed;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+}
+
+/* Selected day */
+.calendar-container .rdp-day_selected {
+  @apply ring-4 ring-purple-300 ring-opacity-50;
+}
+
+/* Today */
+.calendar-container .rdp-day_today {
+  @apply ring-2 ring-blue-400;
+}
+
+/* Outside month days */
+.calendar-container .rdp-day_outside {
+  @apply text-gray-300;
+}
+
+/* Caption styling */
+.calendar-container .rdp-caption {
+  @apply flex items-center justify-between p-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white;
+}
+
+.calendar-container .rdp-caption_label {
+  @apply text-lg font-bold;
+}
+
+.calendar-container .rdp-nav_button {
+  @apply w-8 h-8 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center text-white;
+}
+
+.calendar-container .rdp-nav_button:hover {
+  @apply scale-110 shadow-md;
+}
+
+/* Dark mode adjustments */
+.dark .calendar-container .rdp-head_row {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .calendar-container .rdp-head_cell {
+  @apply text-gray-300;
+}
+
+.dark .calendar-container .rdp-row {
+  @apply border-gray-700;
+}
+
+.dark .calendar-container {
+  @apply border-gray-700 bg-gray-800;
 }
 
 /* Print styles */
