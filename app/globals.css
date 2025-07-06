@@ -179,33 +179,50 @@ textarea:focus {
 
 .calendar-container .rdp-table {
   @apply w-full border-collapse;
+  table-layout: fixed !important;
+  width: 100% !important;
 }
 
 .calendar-container .rdp-head_row {
-  @apply border-b border-gray-200 bg-gray-50;
+  @apply border-b border-gray-200 bg-gray-50 flex w-full;
+}
+
+.calendar-container .rdp-head_row {
+  @apply border-b-2 border-gray-300 bg-gray-100 flex w-full;
+  display: flex !important;
 }
 
 .calendar-container .rdp-head_cell {
-  @apply p-3 text-center font-bold text-gray-800 text-sm uppercase tracking-wider;
-  width: 14.28%; /* Equal width for all 7 days */
-  min-width: 3rem;
+  @apply p-3 text-center font-bold text-gray-800 text-sm uppercase tracking-wide;
+  flex: 1;
+  min-width: 0;
+  width: calc(100% / 7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .calendar-container .rdp-row {
-  @apply border-b border-gray-100 last:border-b-0;
+  @apply border-b border-gray-100 last:border-b-0 flex w-full;
+  display: flex !important;
 }
 
 .calendar-container .rdp-cell {
   @apply relative text-center;
-  width: 14.28%; /* Equal width for all 7 days */
+  flex: 1;
   min-height: 4rem;
   padding: 0.25rem;
+  min-width: 0;
+  width: calc(100% / 7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .calendar-container .rdp-day {
-  @apply w-full h-14 mx-auto flex items-center justify-center text-sm font-bold rounded-lg transition-all duration-200 border-2 border-gray-200 relative bg-white;
+  @apply h-12 w-12 flex items-center justify-center text-sm font-bold rounded-lg transition-all duration-200 border-2 border-gray-200 relative bg-white;
   cursor: pointer;
-  min-width: 3rem;
+  margin: 0 auto;
 }
 
 .calendar-container .rdp-day:hover {
@@ -228,46 +245,52 @@ textarea:focus {
   }
 }
 
-/* Available days - Green */
+/* Available days - Bright Green */
 .calendar-container .rdp-day.calendar-available {
   @apply text-white font-black shadow-lg;
-  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
-  border: 2px solid #15803d !important;
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border: 2px solid #047857 !important;
   color: white !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
 }
 
 .calendar-container .rdp-day.calendar-available:hover {
   @apply scale-110 shadow-xl;
-  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  background: linear-gradient(135deg, #059669, #047857) !important;
   transform: scale(1.1) !important;
   color: white !important;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5) !important;
 }
 
-/* Fully booked days - Red */
+/* Fully booked days - Bright Red */
 .calendar-container .rdp-day.calendar-full {
   @apply text-white font-black shadow-lg cursor-not-allowed;
-  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-  border: 2px solid #b91c1c !important;
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  border: 2px solid #991b1b !important;
   color: white !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
 }
 
 .calendar-container .rdp-day.calendar-full:hover {
   @apply scale-105 shadow-lg cursor-not-allowed;
-  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
   color: white !important;
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5) !important;
 }
 
-/* Past/disabled/unavailable days */
+/* Past/disabled/unavailable days (including Sundays) */
 .calendar-container .rdp-day_disabled {
-  @apply text-gray-500 font-semibold cursor-not-allowed;
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
-  border: 2px solid #d1d5db !important;
-  color: #6b7280 !important;
+  @apply text-gray-400 font-medium cursor-not-allowed;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6) !important;
+  border: 2px solid #e5e7eb !important;
+  color: #9ca3af !important;
+  opacity: 0.6;
 }
 
 .calendar-container .rdp-day_disabled:hover {
   @apply scale-100 shadow-none cursor-not-allowed;
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6) !important;
+  opacity: 0.6;
 }
 
 /* Selected day */
@@ -291,7 +314,7 @@ textarea:focus {
 }
 
 .calendar-container .rdp-caption_label {
-  @apply text-lg font-bold;
+  @apply text-lg font-medium text-center;
 }
 
 .calendar-container .rdp-nav_button {

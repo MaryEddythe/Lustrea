@@ -9,6 +9,7 @@ import BookingForm from "@/components/booking/booking-form";
 import BookingSuccess from "@/components/booking/booking-success";
 import { servicesData } from "@/lib/data/services-data";
 import { timeSlots } from "@/lib/data/time-slots";
+import { addAppointment } from "@/lib/data/appointments-data";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
@@ -35,8 +36,26 @@ export default function BookingPage() {
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate booking
+
+    if (!selectedDate || !selectedTime || !selectedService) {
+      return;
+    }
+
+    // Add the appointment to the data
+    addAppointment({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      service: selectedService,
+      date: selectedDate.toISOString().split("T")[0],
+      time: selectedTime,
+      status: "confirmed",
+      notes: formData.notes,
+    });
+
+    // Show success
     setBookingSuccess(true);
+
     // Reset form
     setFormData({ name: "", email: "", phone: "", notes: "" });
     setSelectedService("");
@@ -47,6 +66,9 @@ export default function BookingPage() {
   const resetBooking = () => {
     setBookingSuccess(false);
     setSelectedDate(undefined);
+    setSelectedTime("");
+    setSelectedService("");
+    setFormData({ name: "", email: "", phone: "", notes: "" });
     setCurrentStep("calendar");
   };
 

@@ -27,7 +27,10 @@ import {
 import { CalendarDays, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { weekdayTimeSlots, weekendTimeSlots } from "@/lib/data/time-slots";
-import { appointmentsData } from "@/lib/data/appointments-data";
+import {
+  appointmentsData,
+  getAppointmentsForDate,
+} from "@/lib/data/appointments-data";
 
 interface BookingCalendarProps {
   selectedDate: Date | undefined;
@@ -42,9 +45,8 @@ const getBookedSlotsForDate = (date: Date): string[] => {
     return [];
   }
   const dateString = date.toISOString().split("T")[0];
-  return appointmentsData
-    .filter((appointment) => appointment.date === dateString)
-    .map((appointment) => appointment.time);
+  const appointments = getAppointmentsForDate(dateString);
+  return appointments.map((appointment) => appointment.time);
 };
 
 // Get time slots for a specific date based on weekday/weekend
@@ -53,10 +55,9 @@ const getTimeSlotsForDate = (date: Date): string[] => {
     return [];
   }
   const dayOfWeek = date.getDay();
-  // Sunday = 0, Saturday = 6
-  return dayOfWeek === 0 || dayOfWeek === 6
-    ? weekendTimeSlots
-    : weekdayTimeSlots;
+  // Sunday = 0 (unavailable), Saturday = 6
+  if (dayOfWeek === 0) return []; // Sundays are unavailable
+  return dayOfWeek === 6 ? weekendTimeSlots : weekdayTimeSlots;
 };
 
 // Get available time slots for a specific date
@@ -84,6 +85,12 @@ const isPastDate = (date: Date): boolean => {
   return dateToCheck < today;
 };
 
+// Check if date is a Sunday (unavailable)
+const isSunday = (date: Date): boolean => {
+  if (!date || !(date instanceof Date)) return false;
+  return date.getDay() === 0; // Sunday = 0
+};
+
 // Check if date is too far in the future (e.g., more than 3 months)
 const isTooFarInFuture = (date: Date): boolean => {
   if (!date || !(date instanceof Date)) return true;
@@ -106,9 +113,9 @@ export default function BookingCalendar({
     return now;
   });
 
-  // Disable past dates and dates too far in future
+  // Disable past dates, dates too far in future, and Sundays
   const disabledMatcher = React.useCallback((date: Date) => {
-    return isPastDate(date) || isTooFarInFuture(date);
+    return isPastDate(date) || isTooFarInFuture(date) || isSunday(date);
   }, []);
 
   // Custom modifiers for different slot availability states
@@ -122,7 +129,7 @@ export default function BookingCalendar({
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
-      if (!isPastDate(date) && !isTooFarInFuture(date)) {
+      if (!isPastDate(date) && !isTooFarInFuture(date) && !isSunday(date)) {
         const available = getAvailableSlots(date);
         if (available > 0) {
           availableDates.push(new Date(date));
@@ -199,7 +206,7 @@ export default function BookingCalendar({
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-gray-300 shadow-sm" />
             <span className="text-sm font-medium text-gray-600">
-              Unavailable
+              Sundays Closed
             </span>
           </div>
         </div>
@@ -277,41 +284,80 @@ export default function BookingCalendar({
             </div>
           </SheetHeader>
           <div className="space-y-3">
-            {availableSlots.length > 0 ? (
-              <>
-                <p className="text-sm font-medium text-gray-700 mb-4">
-                  Available times:
-                </p>
-                <div className="space-y-3">
-                  {availableSlots.map((slot) => (
-                    <Button
-                      key={slot}
-                      variant={selectedSlot === slot ? "default" : "outline"}
-                      className={cn(
-                        "w-full h-14 text-left justify-start font-medium transition-all duration-200 text-base",
-                        selectedSlot === slot
-                          ? "bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg scale-105"
-                          : "hover:border-pink-300 hover:bg-pink-50 hover:shadow-md hover:scale-105",
-                      )}
-                      onClick={() => handleSlotSelect(slot)}
-                    >
-                      <Clock className="h-5 w-5 mr-3" />
-                      {slot}
-                    </Button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
-                  <Clock className="h-8 w-8 text-red-500" />
-                </div>
-                <div className="text-lg font-semibold text-gray-900 mb-2">
-                  No Available Slots
-                </div>
-                <div className="text-sm text-gray-600">
-                  This date is fully booked. Please select a different date.
-                </div>
+            {selectedDate && (
+              <div className="space-y-4">
+                {/* Available Slots */}
+                {availableSlots.length > 0 && (
+                  <div>
+                    <div className="text-sm font-medium text-green-700 mb-3 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      Available times ({availableSlots.length}):
+                    </div>
+                    <div className="space-y-3">
+                      {availableSlots.map((slot) => (
+                        <Button
+                          key={slot}
+                          variant={
+                            selectedSlot === slot ? "default" : "outline"
+                          }
+                          className={cn(
+                            "w-full h-14 text-left justify-start font-medium transition-all duration-200 text-base",
+                            selectedSlot === slot
+                              ? "bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg scale-105"
+                              : "hover:border-pink-300 hover:bg-pink-50 hover:shadow-md hover:scale-105",
+                          )}
+                          onClick={() => handleSlotSelect(slot)}
+                        >
+                          <Clock className="h-5 w-5 mr-3" />
+                          {slot}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Booked Slots */}
+                {(() => {
+                  const bookedSlots = getBookedSlotsForDate(selectedDate);
+                  return (
+                    bookedSlots.length > 0 && (
+                      <div>
+                        <div className="text-sm font-medium text-red-700 mb-3 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          Already booked ({bookedSlots.length}):
+                        </div>
+                        <div className="space-y-2">
+                          {bookedSlots.map((slot, index) => (
+                            <div
+                              key={index}
+                              className="w-full h-12 px-4 flex items-center bg-red-50 border border-red-200 rounded-lg text-red-700"
+                            >
+                              <Clock className="h-4 w-4 mr-3" />
+                              <span className="font-medium">{slot}</span>
+                              <span className="ml-auto text-xs text-red-500">
+                                Unavailable
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  );
+                })()}
+
+                {availableSlots.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+                      <Clock className="h-8 w-8 text-red-500" />
+                    </div>
+                    <div className="text-lg font-semibold text-gray-900 mb-2">
+                      No Available Slots
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      This date is fully booked. Please select a different date.
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
