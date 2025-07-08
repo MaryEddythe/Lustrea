@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import ServiceSelection from "@/components/booking/service-selection";
-import BookingCalendar from "@/components/booking/booking-calendar";
+import ModernBookingCalendar from "@/components/booking/modern-booking-calendar";
 import BookingForm from "@/components/booking/booking-form";
 import BookingSuccess from "@/components/booking/booking-success";
 import { servicesData } from "@/lib/data/services-data";
@@ -229,25 +229,15 @@ export default function BookingPage() {
         <div className="max-w-3xl mx-auto">
           <div className="relative overflow-hidden">
             {currentStep === "calendar" && (
-              <div className="animate-in slide-in-from-right-4 duration-500 space-y-8">
-                <BookingCalendar
+              <div className="animate-in slide-in-from-right-4 duration-500">
+                <ModernBookingCalendar
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
-                  onSlotSelect={handleSlotSelect}
+                  selectedTime={selectedTime}
+                  onTimeSelect={setSelectedTime}
+                  selectedService={selectedService || "1"}
+                  onNext={() => setCurrentStep("service")}
                 />
-                <div className="flex justify-center lg:justify-end">
-                  <Button
-                    onClick={() => setCurrentStep("service")}
-                    disabled={!canProceedToService}
-                    size="lg"
-                    className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-base font-medium"
-                  >
-                    {selectedTime
-                      ? `Continue with ${selectedTime} slot`
-                      : "Select a time slot"}
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </div>
               </div>
             )}
 

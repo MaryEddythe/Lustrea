@@ -60,18 +60,6 @@ export default function GalleryPage() {
             </Card>
           ))}
         </div>
-
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-6">
-            Love what you see? Book an appointment to get your own stunning nail design!
-          </p>
-          <Button
-            size="lg"
-            className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-          >
-            Book Appointment
-          </Button>
-        </div>
       </div>
     </div>
   )
