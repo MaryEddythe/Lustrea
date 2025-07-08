@@ -73,7 +73,16 @@ class AppointmentController extends Controller
                 'appointment_date' => 'required|date|after_or_equal:today',
                 'appointment_time' => 'required|date_format:H:i',
                 'notes' => 'nullable|string|max:1000',
+                'design_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
             ]);
+
+            // Handle design image upload
+            if ($request->hasFile('design_image')) {
+                $image = $request->file('design_image');
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('uploads/design_images'), $imageName);
+                $validated['design_image'] = 'uploads/design_images/' . $imageName;
+            }
 
             // Check if the service is active
             $service = Service::findOrFail($validated['service_id']);
@@ -136,7 +145,7 @@ class AppointmentController extends Controller
     public function show(Appointment $appointment): JsonResponse
     {
         $appointment->load('service');
-        
+
         return response()->json([
             'success' => true,
             'data' => $appointment,

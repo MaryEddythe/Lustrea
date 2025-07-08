@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { servicesData } from "@/lib/data/services-data";
+import ImageUpload from "@/components/booking/image-upload";
 
 interface FormData {
   name: string;
@@ -30,6 +31,7 @@ interface FormData {
   phone: string;
   notes: string;
   paymentProof?: File;
+  designImage?: File;
 }
 
 interface BookingFormProps {
@@ -235,6 +237,18 @@ export default function BookingForm({
                 setFormData({ ...formData, notes: e.target.value })
               }
               className="min-h-[120px] border-2 border-gray-200 focus:border-pink-400 focus:ring-pink-400 rounded-lg text-base resize-none"
+            />
+          </div>
+
+          {/* Design Reference Image Upload */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-200">
+            <ImageUpload
+              onImageSelect={(file) =>
+                setFormData({ ...formData, designImage: file || undefined })
+              }
+              selectedImage={formData.designImage}
+              label="Design Reference Image (Optional)"
+              description="Upload a photo of your desired nail design to help our artists understand your vision"
             />
           </div>
 

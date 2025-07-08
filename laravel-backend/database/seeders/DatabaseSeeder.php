@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             GallerySeeder::class,
             TimeSlotSeeder::class,
-            // AppointmentSeeder::class, // Uncomment for demo appointments
+            AppointmentSeeder::class, // Uncommented for demo appointments
+            MessageSeeder::class,
         ]);
     }
 }

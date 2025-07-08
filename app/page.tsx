@@ -5,7 +5,7 @@ import Navigation from "@/components/layout/navigation"
 import HomePage from "@/components/pages/home-page"
 import ServicesPage from "@/components/pages/services-page"
 import GalleryPage from "@/components/pages/gallery-page"
-import BookingPage from "@/components/pages/booking-page"
+import BookingPage from "@/components/pages/booking"
 import AdminPage from "@/components/pages/admin-page"
 
 export default function NailSalonApp() {
@@ -14,7 +14,7 @@ export default function NailSalonApp() {
   const renderPage = () => {
     switch (currentPage) {
       case "home":
-        return <HomePage />
+        return <HomePage onBookClick={() => setCurrentPage("booking")} onViewWorkClick={() => setCurrentPage("gallery")} />
       case "services":
         return <ServicesPage />
       case "gallery":
@@ -24,7 +24,7 @@ export default function NailSalonApp() {
       case "admin":
         return <AdminPage />
       default:
-        return <HomePage />
+        return <HomePage onBookClick={() => setCurrentPage("booking")} onViewWorkClick={() => setCurrentPage("gallery")} />
     }
   }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 
 class Appointment extends Model
@@ -19,7 +20,8 @@ class Appointment extends Model
         'appointment_date',
         'appointment_time',
         'status',
-        'notes'
+        'notes',
+        'design_image'
     ];
 
     protected $casts = [
@@ -33,6 +35,14 @@ class Appointment extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Get the messages for the appointment.
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
     }
 
     /**
@@ -74,7 +84,7 @@ class Appointment extends Model
      */
     public function getFormattedDateTimeAttribute(): string
     {
-        return $this->appointment_date->format('M d, Y') . ' at ' . 
+        return $this->appointment_date->format('M d, Y') . ' at ' .
                Carbon::parse($this->appointment_time)->format('g:i A');
     }
 

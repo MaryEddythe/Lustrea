@@ -24,7 +24,7 @@ export default function ServicesPage() {
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-xl">{service.name}</CardTitle>
                   <Badge variant="secondary" className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700">
-                    {`₱${service.price}`}
+                    {`₱${service.price}${service.name === "Soft Gel Extensions" || service.name === "Nail Art Design" ? " (min.)" : ""}`}
                   </Badge>
                 </div>
                 <CardDescription className="flex items-center text-gray-500">
@@ -34,6 +34,12 @@ export default function ServicesPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-4">{service.description}</p>
+                {/* Only show the note for Soft Gel Extensions and Nail Art Design */}
+                {(service.name === "Soft Gel Extensions" || service.name === "Nail Art Design") && (
+                  <p className="text-xs text-pink-600 mb-2">
+                    <strong>Note:</strong> The price displayed is a minimum price. Please inquire with the seller for the price of your desired design.
+                  </p>
+                )}
                 <div className="space-y-2">
                   <h4 className="font-semibold text-gray-900">Includes:</h4>
                   <ul className="space-y-1">
@@ -50,10 +56,11 @@ export default function ServicesPage() {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+          <div className="text-center mt-12">
           <Button
             size="lg"
             className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+            onClick={() => window.location.href = '/booking'}
           >
             Book Your Service Now
           </Button>

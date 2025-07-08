@@ -1,6 +1,11 @@
 import { Button } from "@/components/ui/button"
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onBookClick: () => void
+  onViewWorkClick: () => void
+}
+
+export default function HeroSection({ onBookClick, onViewWorkClick }: HeroSectionProps) {
   return (
     <section className="relative py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -19,10 +24,11 @@ export default function HeroSection() {
             <Button
               size="lg"
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+              onClick={onBookClick}
             >
               Book Appointment
             </Button>
-            <Button size="lg" variant="outline">
+            <Button size="lg" variant="outline" onClick={onViewWorkClick}>
               View Our Work
             </Button>
           </div>

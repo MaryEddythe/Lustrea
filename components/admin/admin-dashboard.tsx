@@ -1,11 +1,12 @@
-"use client"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import AppointmentsManager from "@/components/admin/appointments-manager"
-import AnalyticsOverview from "@/components/admin/analytics-overview"
+"use client";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AppointmentsManager from "@/components/admin/appointments-manager";
+import AnalyticsOverview from "@/components/admin/analytics-overview";
+import MessagesManager from "@/components/admin/messages-manager";
 
 interface AdminDashboardProps {
-  onLogout: () => void
+  onLogout: () => void;
 }
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
@@ -22,11 +23,16 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         <Tabs defaultValue="appointments" className="space-y-4">
           <TabsList>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="appointments">
             <AppointmentsManager />
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <MessagesManager />
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -35,5 +41,5 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

@@ -1,9 +1,11 @@
+// All prices below are minimum prices. Please inquire with the seller for the price of your desired design.
+
 export const servicesData = [
   {
     id: 1,
     name: "Soft Gel Extensions",
     duration: 120,
-    price: 500,
+  price: 500,
     description: "Lightweight and durable nail extensions for a classy, natural look. Perfect for clients who want extra length and style without the heaviness of acrylics.",
     features: ["Full soft gel tips", "Gel polish color of choice", "Cured with UV/LED lamp", "Custom shapes (almond, coffin, square)"],
   },
