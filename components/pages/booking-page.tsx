@@ -41,7 +41,7 @@ export default function BookingPage() {
       return;
     }
 
-    // Add the appointment to the data
+    // Add the appointment to the data with status "pending"
     addAppointment({
       name: formData.name,
       email: formData.email,
@@ -49,7 +49,7 @@ export default function BookingPage() {
       service: selectedService,
       date: selectedDate.toISOString().split("T")[0],
       time: selectedTime,
-      status: "confirmed",
+      status: "pending",
       notes: formData.notes,
     });
 
